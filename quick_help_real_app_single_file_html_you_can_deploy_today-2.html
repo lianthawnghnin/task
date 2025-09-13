@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuickHelp • .edu Only Campus Micro‑Tasks</title>
+  <!-- Tailwind via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="QuickHelp: a lightweight peer‑to‑peer micro‑task app" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><text x='50' y='58' font-size='54' text-anchor='middle' fill='white'>Q</text></svg>">
+  <style>
+    /* Simple animations */
+    .fade-in { animation: fade .35s ease-out both; }
+    @keyframes fade { from { opacity:.0; transform: translateY(4px)} to { opacity:1; transform: translateY(0)} }
+    .glass { backdrop-filter: blur(8px); background: rgba(255,255,255,.65); }
+    .dark .glass { background: rgba(17,24,39,.55) }
+    .ring-brand { box-shadow: 0 0 0 3px rgba(59,130,246,.35) } /* focus */
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100">
+  <div class="max-w-6xl mx-auto p-4 sm:p-6">
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-blue-600 text-white grid place-items-center font-bold">Q</div>
+        <div>
+          <h1 class="text-2xl font-semibold">QuickHelp</h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400">Peer‑to‑peer micro‑tasks • .edu‑only demo</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="themeBtn" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-sm">Toggle theme</button>
+        <div id="authArea"></div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main id="appRoot" class="grid md:grid-cols-3 gap-4">
+      <!-- Left: post new -->
+      <section class="md:col-span-2 glass rounded-2xl p-4 border border-slate-200 dark:border-slate-800">
+        <h2 class="text-lg font-semibold mb-3">Post a task</h2>
+        <form id="postForm" class="grid sm:grid-cols-2 gap-3">
+          <input id="title" required placeholder="e.g., Need help carrying boxes" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50" />
+          <div class="sm:col-span-2 grid sm:grid-cols-3 gap-3">
+            <input id="creditAmount" type="number" min="1" value="5" placeholder="Time credits (minutes, e.g., 5)" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50" />
+            <input id="rewardNote" placeholder="Optional note for helpers (non-monetary)" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50" />
+            <label class="flex items-center gap-2 text-sm px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/40">
+              <input type="checkbox" id="tipsAllowed" checked class="rounded border-slate-300 dark:border-slate-700">
+              Tips allowed (extra minutes only)
+            </label>
+          </div>
+          <input id="location" placeholder="Tufts Library steps" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50" />
+          <select id="category" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50">
+            <option>Errand</option>
+            <option>Tutoring</option>
+            <option>Move/Carry</option>
+            <option>Tech Help</option>
+            <option>Lost & Found</option>
+          </select>
+          <textarea id="details" placeholder="Short details (what/where/when)" class="sm:col-span-2 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50"></textarea>
+          <button class="sm:col-span-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium">Post task</button>
+        </form>
+      </section>
+
+      <!-- Right: filters -->
+      <aside class="glass rounded-2xl p-4 border border-slate-200 dark:border-slate-800">
+        <h3 class="font-semibold mb-3">Filters</h3>
+        <div class="flex flex-wrap gap-2 mb-2">
+          <button data-filter="all" class="chip active px-3 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-sm">All</button>
+          <button data-filter="Errand" class="chip px-3 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-sm">Errand</button>
+          <button data-filter="Tutoring" class="chip px-3 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-sm">Tutoring</button>
+          <button data-filter="Move/Carry" class="chip px-3 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-sm">Move/Carry</button>
+          <button data-filter="Tech Help" class="chip px-3 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-sm">Tech Help</button>
+        </div>
+        <input id="searchBox" placeholder="Search tasks…" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50" />
+        <div class="mt-2 flex items-center gap-2">
+          <input type="checkbox" id="campusOnly" checked class="rounded border-slate-300 dark:border-slate-700">
+          <label for="campusOnly" class="text-sm">My campus only</label>
+          <span id="campusHint" class="text-xs text-slate-500 ml-auto">Campus: —</span>
+        </div>
+        <div class="mt-4 text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40"><strong>Policy:</strong> Time Credits = minutes of help. This is a peer‑to‑peer service exchange, not wages. Tips are minutes only. No cash, gift cards, or off‑platform payments.</div>
+      </aside>
+
+      <!-- Feed -->
+      <section class="md:col-span-2 glass rounded-2xl p-4 border border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-semibold">Task feed</h2>
+          <button id="clearBtn" class="text-sm px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">Reset demo data</button>
+        </div>
+        <ul id="taskList" class="grid gap-3"></ul>
+      </section>
+
+      <!-- Messages / selections -->
+      <section class="glass rounded-2xl p-4 border border-slate-200 dark:border-slate-800">
+        <h2 class="text-lg font-semibold mb-3">Inbox</h2>
+        <div id="inboxEmpty" class="text-sm text-slate-500">No conversations yet. Claim a task to start chatting.</div>
+        <ul id="chatList" class="grid gap-3"></ul>
+        <div id="chatPanel" class="hidden fade-in mt-3">
+          <div class="font-medium mb-1" id="chatTitle"></div>
+          <div id="chatThread" class="h-48 overflow-y-auto p-3 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800"></div>
+          <form id="chatForm" class="flex gap-2 mt-2">
+            <input id="chatInput" placeholder="Type a message" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50" />
+            <button class="px-3 py-2 rounded-xl bg-blue-600 text-white">Send</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="text-xs text-slate-500 mt-8 text-center">QuickHelp demo • Local, no backend • Save this file as <strong>index.html</strong> and deploy anywhere</footer>
+
+    <!-- Inline Diagnostics (visible test results) -->
+    <details class="max-w-6xl mx-auto mt-4 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40">
+      <summary class="cursor-pointer">Diagnostics (click to view test results)</summary>
+      <ul id="diagList" class="list-disc pl-6 text-xs mt-2"></ul>
+    </details>
+  </div>
+
+  <script>
+    /**
+     * QuickHelp demo app – zero backend
+     * Features: pseudo auth, create/claim/complete tasks, search/filter, basic chat
+     * Storage: localStorage (per‑browser). Clear via "Reset demo data".
+     */
+
+    // ---------- Utility ----------
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => [...el.querySelectorAll(sel)];
+    const uid = () => Math.random().toString(36).slice(2,10);
+    const now = () => new Date().toISOString();
+
+    // ---------- Edu gate ----------
+    const EDU_ONLY = true;                 // require .edu emails
+    const allowedDomains = [];             // e.g., ['tufts.edu']; leave empty to allow any .edu
+    const isAllowedEdu = (email) => {
+      if (!EDU_ONLY) return true;
+      if (!email) return false;
+      const m = email.toLowerCase().match(/^[^@]+@([A-Za-z0-9.-]+)$/);
+      if (!m) return false;
+      const domain = m[1];
+      if (!domain.endsWith('.edu')) return false;
+      if (allowedDomains.length && !allowedDomains.includes(domain)) return false;
+      return true;
+    };
+
+    // ---------- Theme ----------
+    const themeBtn = document.getElementById('themeBtn');
+    const applyTheme = () => {
+      const t = localStorage.getItem('qh_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.classList.toggle('dark', t === 'dark');
+    }
+    applyTheme();
+    themeBtn.addEventListener('click', () => {
+      const t = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+      localStorage.setItem('qh_theme', t);
+      applyTheme();
+    });
+
+    // ---------- State ----------
+    // Simple campus wallet for time credits (minutes)
+    const wallets = {
+      get map(){ return JSON.parse(localStorage.getItem('qh_wallets')||'{}')},
+      set map(v){ localStorage.setItem('qh_wallets', JSON.stringify(v))},
+      init(email){ const m=this.map; if(!m[email]){ m[email] = { credits: 60, holds: {} }; this.map = m; } },
+      getBalance(email){ const m=this.map; return (m[email]?.credits ?? 0); },
+      _ensure(email){ const m=this.map; if(!m[email]) m[email] = { credits: 0, holds: {} }; if(!m[email].holds) m[email].holds = {}; return m; },
+      setBalance(email,val){ const m=this._ensure(email); m[email].credits = Math.max(0, Math.floor(val)); this.map = m; },
+      transfer(from,to,amt){ amt = Math.max(0, Math.floor(amt||0)); if(!amt) return true; const m=this._ensure(from); this._ensure(to); if(m[from].credits < amt) return false; m[from].credits -= amt; m[to].credits += amt; this.map=m; return true; },
+      hold(from, taskId, amt){ amt = Math.max(0, Math.floor(amt||0)); const m=this._ensure(from); if(m[from].credits < amt) return false; m[from].credits -= amt; m[from].holds[taskId] = (m[from].holds[taskId]||0) + amt; this.map=m; return true; },
+      release(from, taskId){ const m=this._ensure(from); const amt = m[from].holds[taskId]||0; if(amt>0){ m[from].credits += amt; delete m[from].holds[taskId]; this.map=m; } },
+      settle(from,to,taskId){ const m=this._ensure(from); this._ensure(to); const amt = m[from].holds[taskId]||0; if(amt>0){ m[to].credits += amt; delete m[from].holds[taskId]; this.map=m; } }
+    }
+    const db = {
+      get user(){ return JSON.parse(localStorage.getItem('qh_user')||'null')},
+      set user(v){ localStorage.setItem('qh_user', JSON.stringify(v))},
+      get tasks(){ return JSON.parse(localStorage.getItem('qh_tasks')||'[]')},
+      set tasks(v){ localStorage.setItem('qh_tasks', JSON.stringify(v))},
+      get chats(){ return JSON.parse(localStorage.getItem('qh_chats')||'{}')},
+      set chats(v){ localStorage.setItem('qh_chats', JSON.stringify(v))},
+      reset(){ localStorage.removeItem('qh_tasks'); localStorage.removeItem('qh_chats'); seed(); render(); }
+    }
+
+    // Seed with sample tasks on first load
+    function seed(){
+      if(db.tasks.length) return;
+      db.tasks = [
+        { id: uid(), title:'Carry 3 boxes from Carmichael to Haskell', details:'5 minutes. Meet outside the lobby.', reward:'—', rewardMode:'minutes', credits:5, location:'Tufts – Carmichael', category:'Move/Carry', author:'Ava', authorEmail:'ava@tufts.edu', campus:'tufts.edu', status:'open', createdAt: now() },
+        { id: uid(), title:'Calc 101 derivative check', details:'Look over 5 problems. 10 minutes on FaceTime.', reward:'—', rewardMode:'minutes', credits:3, location:'Online', category:'Tutoring', author:'Noah', authorEmail:'noah@tufts.edu', campus:'tufts.edu', status:'open', createdAt: now() },
+        { id: uid(), title:'AirPods lost', details:'If found near Tisch steps, ping me 🙏', reward:'—', rewardMode:'minutes', credits:2, location:'Tisch Library', category:'Lost & Found', author:'Maya', authorEmail:'maya@tufts.edu', campus:'tufts.edu', status:'open', createdAt: now() },
+      ];
+      db.chats = {};
+    }
+    seed();
+
+    // ---------- Auth (very simple) ----------
+    const authArea = document.getElementById('authArea');
+    function renderAuth(){
+      const u = db.user;
+      if(!u){
+        authArea.innerHTML = `
+          <form id="loginForm" class="flex flex-wrap items-center gap-2">
+            <input id="emailInput" type="email" placeholder="yourname@school.edu" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50" required />
+            <input id="nameInput" placeholder="Your name (optional)" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50" />
+            <button class="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-3 py-2 rounded-xl">Sign in</button>
+            <div id="eduMsg" class="text-xs text-rose-600 basis-full hidden">Must use a .edu email${allowedDomains.length?` (allowed: ${allowedDomains.join(', ')})`:''}.</div>
+          </form>`;
+        $('#loginForm').addEventListener('submit', e=>{
+          e.preventDefault();
+          const email = $('#emailInput').value.trim().toLowerCase();
+          const name = $('#nameInput').value.trim();
+          const eduMsg = document.getElementById('eduMsg');
+          if(!isAllowedEdu(email)){ eduMsg.classList.remove('hidden'); return; } else { eduMsg.classList.add('hidden'); }
+          const domain = email.split('@')[1];
+          db.user = { id: uid(), name: name || email.split('@')[0], email, campus: domain };
+          wallets.init(email);
+          const hint = document.getElementById('campusHint'); if(hint) hint.textContent = 'Campus: '+domain;
+          render();
+        });
+      } else {
+        authArea.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-slate-500">Hi, <strong>${u.name}</strong> · <span class="opacity-80">${u.campus || (u.email?u.email.split('@')[1]:'')}</span></span>
+            <span class="text-sm px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800">Time Credits (min): <strong id="walletBalance">${wallets.getBalance(u.email)}</strong></span>
+            <button id="logoutBtn" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-sm">Log out</button>
+          </div>`;
+        $('#logoutBtn').addEventListener('click', ()=>{ localStorage.removeItem('qh_user'); const hint=document.getElementById('campusHint'); if(hint) hint.textContent='Campus: —'; render(); });
+      }
+    }
+
+    // ---------- Post Task ----------
+    const postForm = document.getElementById('postForm');
+    postForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      if(!db.user){ alert('Sign in first.'); return; }
+      const minutes = parseInt($('#creditAmount')?.value||'0',10) || 0;
+      if(!minutes || minutes<1){ alert('Enter time credits in minutes (≥1).'); return; }
+      const t = {
+        id: uid(),
+        title: $('#title').value.trim(),
+        reward: '—',
+        rewardNote: $('#rewardNote')?.value.trim() || '',
+        location: $('#location').value.trim(),
+        category: $('#category').value,
+        details: $('#details').value.trim(),
+        author: db.user.name,
+        authorEmail: db.user.email,
+        rewardMode: 'minutes',
+        credits: minutes,
+        tipsAllowed: !!($('#tipsAllowed')?.checked),
+        campus: db.user.campus,
+        status: 'open',
+        createdAt: now(),
+        claimer: null,
+        claimerEmail: null,
+        completedAt: null
+      }
+      if(!t.title){ return; }
+      db.tasks = [t, ...db.tasks];
+      postForm.reset();
+      renderTasks();
+    });
+
+    // ---------- Filters & search ----------
+    let activeFilter = 'all';
+    $$('#appRoot .chip').forEach(btn=>btn.addEventListener('click', (e)=>{
+      activeFilter = e.target.dataset.filter;
+      $$('#appRoot .chip').forEach(b=>b.classList.remove('ring-brand'));
+      e.target.classList.add('ring-brand');
+      renderTasks();
+    }));
+    $('#searchBox').addEventListener('input', renderTasks);
+
+    // campus visibility toggle
+    let campusOnly = true;
+    const campusOnlyEl = document.getElementById('campusOnly');
+    if(campusOnlyEl){ campusOnlyEl.addEventListener('change', ()=>{ campusOnly = campusOnlyEl.checked; renderTasks(); }); }
+
+    // ---------- Task Feed ----------
+    const taskList = document.getElementById('taskList');
+    function taskCard(t){
+      const isMine = db.user && t.author === db.user.name;
+      const canClaim = db.user && !isMine && t.status === 'open';
+      const canComplete = db.user && (isMine || (t.claimer === db.user.name)) && t.status === 'claimed';
+      const canTip = db.user && t.status==='completed' && isMine && t.claimerEmail && t.tipsAllowed;
+      return `
+      <li class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 fade-in">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="flex items-center gap-2"><span class="text-sm px-2 py-0.5 rounded-full border border-slate-300 dark:border-slate-700">${t.category}</span><span class="text-xs text-slate-500">${new Date(t.createdAt).toLocaleString()}</span></div>
+            <h3 class="text-lg font-semibold mt-1">${t.title}</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">${t.details||''}</p>
+            <div class="text-sm mt-2"><span class=\"font-medium\">Exchange:<\/span> ${(t.credits||0)} min credits • <span class="font-medium">Location:</span> ${t.location||'—'} • <span class="font-medium">Campus:</span> ${t.campus || '—'}</div>
+            ${t.rewardNote?`<div class="text-xs text-slate-500 mt-1">Note: ${t.rewardNote}</div>`:''}
+            <div class="text-sm mt-1 text-slate-500">Posted by ${t.author}</div>
+          </div>
+          <div class="text-right">
+            <span class="inline-block text-xs px-2 py-1 rounded-full ${t.status==='open'?'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-200': t.status==='claimed'?'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200':'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'}">${t.status}</span>
+          </div>
+        </div>
+        <div class="mt-3 flex gap-2">
+          ${canClaim?`<button data-act="claim" data-id="${t.id}" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white">Claim</button>`:''}
+          ${canComplete?`<button data-act="complete" data-id="${t.id}" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white">Mark done</button>`:''}
+          ${canTip?`<button data-act="tip" data-id="${t.id}" class="px-3 py-1.5 rounded-xl border border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-300">Tip minutes</button>`:''}
+          <button data-act="chat" data-id="${t.id}" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">Chat</button>
+          ${isMine && t.status!=='completed'?`<button data-act="cancel" data-id="${t.id}" class="px-3 py-1.5 rounded-xl border border-rose-300 text-rose-700 dark:border-rose-800 dark:text-rose-300">Cancel</button>`:''}
+        </div>
+      </li>`
+    }
+
+    function renderTasks(){
+      const q = $('#searchBox').value.toLowerCase();
+      const filtered = db.tasks.filter(t =>
+        (activeFilter==='all' || t.category===activeFilter) && (!q || (t.title+" "+t.details+" "+t.location).toLowerCase().includes(q)) && (!campusOnly || !db.user || t.campus === db.user.campus)
+      );
+      taskList.innerHTML = filtered.map(taskCard).join('');
+      taskList.onclick = (e)=>{
+        const btn = e.target.closest('button[data-act]'); if(!btn) return;
+        const id = btn.dataset.id; const act = btn.dataset.act;
+        const t = db.tasks.find(x=>x.id===id);
+        if(!t) return;
+        if(act==='claim'){
+          if(t.status!=='open') return;
+          // escrow minutes from requester
+          if((t.credits||0)>0){
+            const ok = wallets.hold(t.authorEmail, t.id, t.credits);
+            if(!ok){ alert('Requester does not have enough time credits to escrow.'); return; }
+          }
+          t.status='claimed'; t.claimer=db.user.name; t.claimerEmail=db.user.email; db.tasks=[...db.tasks];
+          openChat(t.id);
+        }
+        if(act==='complete'){
+          if(t.status!=='claimed') return;
+          if((t.credits||0)>0){ wallets.settle(t.authorEmail, t.claimerEmail, t.id); }
+          t.status='completed'; t.completedAt=now(); db.tasks=[...db.tasks];
+          if(db.chats[t.id]){ db.chats[t.id].push({ id: uid(), user: 'system', text:`✔ Completed. ${t.credits||0} minutes transferred.`, ts: Date.now() }); }
+          updateWalletUI();
+        }
+        if(act==='cancel'){
+          if(t.status==='claimed'){ wallets.release(t.authorEmail, t.id); }
+          t.status='cancelled'; db.tasks=[...db.tasks];
+        }
+        if(act==='chat'){
+          openChat(t.id);
+        }
+        if(act==='tip'){
+          if(!(db.user && t.author===db.user.name && t.claimerEmail && t.tipsAllowed)){ return; }
+          const n = parseInt(prompt('How many minutes to tip?','2')||'0',10);
+          if(n>0){
+            const ok = wallets.transfer(t.authorEmail, t.claimerEmail, n);
+            if(!ok){ alert('Not enough minutes to tip.'); }
+            else {
+              if(db.chats[t.id]){ db.chats[t.id].push({ id: uid(), user: 'system', text: `💡 Tip sent: ${n} minutes`, ts: Date.now() }); }
+              updateWalletUI();
+            }
+          }
+        }
+        renderTasks(); renderChats();
+      }
+    }
+
+    // ---------- Chats ----------
+    const chatList = document.getElementById('chatList');
+    const chatPanel = document.getElementById('chatPanel');
+    const chatTitle = document.getElementById('chatTitle');
+    const chatThread = document.getElementById('chatThread');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+
+    function taskPeers(t){
+      const people = [t.author];
+      if(t.claimer) people.push(t.claimer);
+      return [...new Set(people)];
+    }
+
+    function ensureRoom(taskId){
+      const chats = db.chats; if(!chats[taskId]) chats[taskId] = [];
+      db.chats = chats; return chats[taskId];
+    }
+
+    function renderChats(){
+      const rooms = Object.keys(db.chats);
+      $('#inboxEmpty').classList.toggle('hidden', rooms.length>0);
+      chatList.innerHTML = rooms.map(id=>{
+        const t = db.tasks.find(x=>x.id===id); if(!t) return '';
+        const last = (db.chats[id]||[]).slice(-1)[0];
+        return `<li>
+          <button data-room="${id}" class="w-full text-left p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40">
+            <div class="text-sm text-slate-500">${t.category} • ${t.location||'—'}</div>
+            <div class="font-medium">${t.title}</div>
+            <div class="text-xs text-slate-500">${last?`${last.user}: ${last.text}`:'No messages yet'}</div>
+          </button>
+        </li>`
+      }).join('');
+      chatList.onclick = (e)=>{
+        const btn = e.target.closest('button[data-room]'); if(!btn) return;
+        openChat(btn.dataset.room);
+      }
+    }
+
+    let activeRoom = null;
+    function openChat(taskId){
+      activeRoom = taskId;
+      const t = db.tasks.find(x=>x.id===taskId);
+      if(!t) return;
+      ensureRoom(taskId);
+      chatPanel.classList.remove('hidden');
+      chatTitle.textContent = `${t.title} – ${taskPeers(t).join(' & ')}`;
+      drawThread();
+    }
+
+    function drawThread(){
+      const msgs = db.chats[activeRoom]||[];
+      chatThread.innerHTML = msgs.map(m=>`
+        <div class="my-1 ${m.user===db.user?.name?'text-right':''}">
+          <span class="inline-block px-3 py-1.5 rounded-2xl ${m.user===db.user?.name?'bg-blue-600 text-white':'bg-slate-200 dark:bg-slate-700'}">${m.text}</span>
+          <div class="text-[10px] text-slate-500">${new Date(m.ts).toLocaleTimeString()}</div>
+        </div>`).join('');
+      chatThread.scrollTop = chatThread.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      if(!db.user){ alert('Sign in first.'); return; }
+      if(!activeRoom){ alert('Open a chat via a task.'); return; }
+      const text = chatInput.value.trim(); if(!text) return;
+      const msgs = ensureRoom(activeRoom);
+      msgs.push({ id: uid(), user: db.user.name, text, ts: Date.now() });
+      db.chats = db.chats; chatInput.value=''; drawThread(); renderChats();
+    });
+
+    function updateWalletUI(){ const el = document.getElementById('walletBalance'); if(el && db.user){ el.textContent = wallets.getBalance(db.user.email); } }
+
+    // ---------- Reset demo ----------
+    document.getElementById('clearBtn').addEventListener('click', ()=>{
+      if(confirm('Reset tasks and chats?')) db.reset();
+    });
+
+    // ---------- Initial render ----------
+    function render(){ renderAuth(); renderTasks(); renderChats(); updateWalletUI(); }
+    render();
+
+    // ---------- Dev/Test Cases ----------
+    (function runTests(){
+      const list = document.getElementById('diagList');
+      function add(name, ok, extra=''){
+        if(!list) return;
+        const li = document.createElement('li');
+        li.textContent = (ok?'✅ ':'❌ ')+name+(extra?(' – '+extra):'');
+        li.className = ok? 'text-emerald-600' : 'text-rose-600';
+        list.appendChild(li);
+      }
+      let pass = 0, total = 0;
+      function test(name, fn){
+        total++;
+        try { const r = fn(); if(r===false) throw new Error('returned false'); add(name, true); pass++; }
+        catch(e){ add(name, false, e && e.message ? e.message : 'error'); }
+      }
+
+      // Basic environment checks
+      test('Tailwind loaded', ()=> typeof window.tailwind !== 'undefined');
+      test('Theme button present', ()=> !!document.getElementById('themeBtn'));
+
+      // .edu gate
+      test('.edu gate allows tufts.edu', ()=> isAllowedEdu('student@tufts.edu')===true);
+      test('.edu gate blocks gmail.com', ()=> isAllowedEdu('user@gmail.com')===false);
+
+      // Wallets
+      const A='a@tufts.edu', B='b@tufts.edu', taskId='T1';
+      wallets.init(A); wallets.init(B);
+      const startA = wallets.getBalance(A);
+      const holdAmt = Math.min(5, startA);
+      test('Wallet hold succeeds', ()=> wallets.hold(A, taskId, holdAmt)===true);
+      test('Wallet balance reduced by hold', ()=> wallets.getBalance(A) === startA - holdAmt);
+      const beforeB = wallets.getBalance(B);
+      test('Wallet settle transfers to B', ()=> { wallets.settle(A,B,taskId); return wallets.getBalance(B) === beforeB + holdAmt; });
+
+      // Render exists
+      test('Render function exists', ()=> typeof render === 'function');
+
+      if(list){
+        const summary = document.createElement('div');
+        summary.className = 'mt-2 text-xs';
+        summary.textContent = `Passed ${pass}/${total} checks`;
+        list.parentElement.appendChild(summary);
+      }
+      console.log(`QuickHelp tests: ${pass}/${total} passed`);
+    })();
+  </script>
+</body>
+</html>
